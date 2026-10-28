@@ -1,0 +1,24 @@
+{
+  "name": "forkd",
+  "private": true,
+  "packageManager": "pnpm@10.28.0",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "dev": "turbo run dev --filter=@forkd/web",
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "db:generate": "pnpm --filter @forkd/db generate",
+    "db:migrate": "pnpm --filter @forkd/db migrate",
+    "db:seed": "pnpm --filter @forkd/db seed",
+    "db:studio": "pnpm --filter @forkd/db studio",
+    "worker": "pnpm --filter @forkd/worker start",
+    "setup": "pnpm db:migrate && pnpm db:seed"
+  },
+  "devDependencies": {
+    "turbo": "2.11.10",
+    "typescript": "5.9.3",
+    "@types/node": "^22.10.0"
+  }
+}

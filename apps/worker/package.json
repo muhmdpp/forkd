@@ -1,0 +1,17 @@
+{
+  "name": "@forkd/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx --env-file-if-exists=../../.env src/index.ts",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@forkd/db": "workspace:*"
+  },
+  "devDependencies": {
+    "@forkd/config": "workspace:*",
+    "tsx": "^4.20.0"
+  }
+}
