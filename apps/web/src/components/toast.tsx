@@ -3,10 +3,10 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const MESSAGES: Record<string, string> = {
-  logged: "Logged. Your feed just got smarter.",
-  added: "Spot added. Thanks for putting it on the map.",
-  hidden: "Got it. You'll see less like that.",
-  welcome: "Taste locked in. Here are your picks.",
+  logged: "Saved. Your picks have been updated.",
+  added: "Spot added. Thanks!",
+  hidden: "Got it. We'll show less like that.",
+  welcome: "All set. Here are your picks.",
 };
 
 /** Shows a one-off message passed as ?toast=key, then cleans the URL. */

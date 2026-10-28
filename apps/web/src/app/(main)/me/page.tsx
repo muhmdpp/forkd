@@ -10,10 +10,10 @@ export const metadata: Metadata = { title: "Your taste" };
 export const dynamic = "force-dynamic";
 
 function personality(top?: { label: string; affinity: number }, spice = 0.5, sceptic = 0) {
-  if (sceptic > 0.5) return "The Hype Detector";
-  if (spice > 0.7) return "Spice Hunter";
-  if (!top || top.affinity < 0.15) return "Still Exploring";
-  return `${top.label} Loyalist`;
+  if (sceptic > 0.5) return "Skeptical of hype";
+  if (spice > 0.7) return "Loves spicy food";
+  if (!top || top.affinity < 0.15) return "Still exploring";
+  return `${top.label} fan`;
 }
 
 export default async function Me() {
@@ -25,11 +25,13 @@ export default async function Me() {
       <TopBar />
       <div className="flex flex-col gap-5">
         <div>
-          <p className="kicker">@{viewer.handle}</p>
-          <h1 className="display mt-1">{personality(categories[0], taste.spice, taste.hypeScepticism)}</h1>
-          <p className="muted mt-2">
-            Your food personality, built from {stats.rated} rating{stats.rated === 1 ? "" : "s"}. It powers every pick and
-            shifts each time you rate or tap &ldquo;Not for me&rdquo;.
+          <h1 className="display">Your taste</h1>
+          <p className="muted mt-1">
+            @{viewer.handle} · {personality(categories[0], taste.spice, taste.hypeScepticism)}
+          </p>
+          <p className="muted mt-2 text-[14px]">
+            Built from {stats.rated} rating{stats.rated === 1 ? "" : "s"}. It updates each time you rate a spot or tap
+            &ldquo;Not for me&rdquo;.
           </p>
         </div>
 
@@ -50,17 +52,17 @@ export default async function Me() {
               </div>
             );
           })}
-          <p className="meta">Green = you love it. Red = not your thing.</p>
+          <p className="meta">Right = you like it. Left = not your thing.</p>
         </section>
 
         <section className="card flex flex-col gap-3 p-4">
           <h2 className="h2">Your style</h2>
           <Bar label="Spice" value={taste.spice} left="Mild" right="Fire" />
           <Bar label="Budget" value={Math.min(1, Math.max(0, (taste.price - 1) / 2))} left={rupees(1)} right={rupees(3)} />
-          <Bar label="Hype sceptic" value={taste.hypeScepticism} left="Trusts reels" right="Calls cap" />
+          <Bar label="Trust in hype" value={1 - taste.hypeScepticism} left="Sceptical" right="Trusting" />
         </section>
 
-        <Link href="/rate" className="btn btn-hot btn-block">Swipe more spots to sharpen this</Link>
+        <Link href="/rate" className="btn btn-hot btn-block">Rate more spots</Link>
         <SignOut />
       </div>
     </>

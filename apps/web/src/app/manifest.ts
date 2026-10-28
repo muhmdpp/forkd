@@ -4,12 +4,12 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Forkd",
     short_name: "Forkd",
-    description: "Personal food spot picks and a Reel vs Real hype check.",
+    description: "Find food spots you'll actually like.",
     start_url: "/",
     display: "standalone",
     orientation: "portrait",
-    background_color: "#100e13",
-    theme_color: "#100e13",
+    background_color: "#f7f7f5",
+    theme_color: "#f7f7f5",
     categories: ["food", "lifestyle", "social"],
     icons: [
       { src: "/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" },

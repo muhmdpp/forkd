@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-const VOTE_TEXT = { gem: "Better than hyped", ok: "As promised", over: "All hype" } as const;
+const VOTE_TEXT = { gem: "Better than expected", ok: "As expected", over: "Overhyped" } as const;
 
 export default async function SpotPage({ params }: Props) {
   const { slug } = await params;
@@ -48,21 +48,20 @@ export default async function SpotPage({ params }: Props) {
       <section className="mt-1 flex items-center gap-4">
         <Plate name={spot.name} hue={hue} size="lg" />
         <div className="flex min-w-0 flex-col gap-1.5">
-          <h1 className="display" style={{ fontSize: "clamp(24px, 7vw, 30px)" }}>
+          <h1 className="display">
             {spot.name}
           </h1>
           <SpotMeta area={spot.area} categoryText={categoryText} priceBand={spot.priceBand} />
           <div className="flex flex-wrap gap-2">
             <HypeSticker label={stats.hypeLabel} />
-            {spot.isSample ? <span className="sticker flat">Sample</span> : null}
           </div>
         </div>
       </section>
 
       {spot.mustOrder ? (
-        <p className="mt-4 text-[15px]">
-          <span className="kicker mr-2">Must order</span>
-          <b>{spot.mustOrder}</b>
+        <p className="mt-4">
+          <span className="muted">Must order: </span>
+          <b className="font-semibold">{spot.mustOrder}</b>
         </p>
       ) : null}
 
@@ -84,7 +83,7 @@ export default async function SpotPage({ params }: Props) {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <div className="kicker">Our guess for you</div>
-                <div className="num text-[26px] font-bold">{prediction.predicted.toFixed(1)}★</div>
+                <div className="num text-[24px] font-bold">{prediction.predicted.toFixed(1)} ★</div>
               </div>
               <Ring match={prediction.match} />
             </div>
@@ -107,9 +106,9 @@ export default async function SpotPage({ params }: Props) {
       {/* Reel vs Real */}
       <section className="card mt-4 flex flex-col gap-4 p-4">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="h2">Reel vs Real</h2>
+          <h2 className="h2">Hype check</h2>
           {stats.hypeGap !== null && showHype ? (
-            <span className={`sticker flat ${stats.hypeGap >= 0 ? "sticker-gem" : "sticker-cap"}`}>
+            <span className={`sticker ${stats.hypeGap >= 0 ? "sticker-gem" : "sticker-cap"}`}>
               {stats.hypeGap >= 0 ? "+" : ""}
               {stats.hypeGap.toFixed(1)}★
             </span>
@@ -120,14 +119,14 @@ export default async function SpotPage({ params }: Props) {
           <>
             <div className="rvr">
               <div className="rvr-row">
-                <span className="lbl muted">REEL</span>
+                <span className="lbl muted">Expected</span>
                 <div className="rvr-bar">
                   <div style={{ width: `${(reel / 5) * 100}%`, background: "var(--muted)" }} />
                 </div>
                 <span className="num text-right font-bold">{reel.toFixed(1)}</span>
               </div>
               <div className="rvr-row">
-                <span className="lbl" style={{ color: "var(--sun)" }}>REAL</span>
+                <span className="lbl">Actual rating</span>
                 <div className="rvr-bar">
                   <div style={{ width: `${(stats.avg / 5) * 100}%`, background: "var(--sun)" }} />
                 </div>
@@ -135,21 +134,21 @@ export default async function SpotPage({ params }: Props) {
               </div>
             </div>
             <p className="meta">
-              Reel = how hyped people thought it was before going. Real = what they rated it after.
-              {stats.reelShare > 0 ? ` ${Math.round(stats.reelShare * 100)}% found it through a reel.` : ""}
+              What people expected before going, compared with what they rated it after.
+              {stats.reelShare > 0 ? ` ${Math.round(stats.reelShare * 100)}% heard about it from a reel.` : ""}
             </p>
             {votes > 0 ? (
               <div className="flex flex-col gap-2">
-                <div className="kicker">Worth the hype?</div>
+                <div className="text-[14px] font-semibold">Was it worth the hype?</div>
                 <div className="votes">
                   <div style={{ flex: stats.hypeVotes.gem, background: "var(--gem)" }} />
                   <div style={{ flex: stats.hypeVotes.ok, background: "var(--legit)" }} />
                   <div style={{ flex: stats.hypeVotes.over, background: "var(--cap)" }} />
                 </div>
                 <div className="meta flex flex-wrap gap-x-4 gap-y-1">
-                  <span><b style={{ color: "var(--gem)" }}>{pct(stats.hypeVotes.gem)}</b> better than hyped</span>
-                  <span><b style={{ color: "var(--legit)" }}>{pct(stats.hypeVotes.ok)}</b> as promised</span>
-                  <span><b style={{ color: "var(--cap)" }}>{pct(stats.hypeVotes.over)}</b> all hype</span>
+                  <span><b style={{ color: "var(--gem)" }}>{pct(stats.hypeVotes.gem)}</b> better than expected</span>
+                  <span><b style={{ color: "var(--legit)" }}>{pct(stats.hypeVotes.ok)}</b> as expected</span>
+                  <span><b style={{ color: "var(--cap)" }}>{pct(stats.hypeVotes.over)}</b> overhyped</span>
                 </div>
               </div>
             ) : null}
@@ -166,7 +165,7 @@ export default async function SpotPage({ params }: Props) {
           </div>
           <div className="flex items-end gap-4">
             <div>
-              <div className="num text-[42px] font-bold leading-none">{stats.avg.toFixed(1)}</div>
+              <div className="num text-[36px] font-bold leading-none">{stats.avg.toFixed(1)}</div>
               <Stars value={Math.round(stats.avg * 2) / 2} className="mt-1 block" />
             </div>
             <div className="min-w-0 flex-1">
@@ -197,9 +196,7 @@ export default async function SpotPage({ params }: Props) {
                 </div>
                 <p className="text-[14.5px]">{r.review}</p>
                 {r.hypeVote ? (
-                  <span className={`sticker flat self-start ${r.hypeVote === "gem" ? "sticker-gem" : r.hypeVote === "over" ? "sticker-cap" : "sticker-legit"}`}>
-                    {VOTE_TEXT[r.hypeVote]}
-                  </span>
+                  <span className="meta">{VOTE_TEXT[r.hypeVote]}</span>
                 ) : null}
               </article>
             ))}

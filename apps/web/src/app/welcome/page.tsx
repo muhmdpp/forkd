@@ -17,10 +17,8 @@ export default async function Welcome() {
         <span className="wordmark">
           fork<span>d</span>
         </span>
-        <h1 className="display mt-3">
-          Swipe the spots <em>you know</em>.
-        </h1>
-        <p className="muted">A few swipes and Forkd learns your taste. Rate at least 3 to get picks.</p>
+        <h1 className="display mt-4">Which of these have you tried?</h1>
+        <p className="muted">Rate at least 3 so we can learn what you like.</p>
       </div>
       <SwipeDeck spots={spots} next="/?toast=welcome" minAnswers={3} />
     </main>

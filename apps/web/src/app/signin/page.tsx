@@ -18,10 +18,8 @@ export default async function SignIn({ searchParams }: { searchParams: Promise<{
         fork<span>d</span>
       </Link>
       <div className="flex flex-col gap-2">
-        <h1 className="display">
-          Your taste, <em>not the algorithm&rsquo;s</em>.
-        </h1>
-        <p className="muted">Takes 20 seconds. Then a few swipes and you get picks made for you.</p>
+        <h1 className="display">Welcome to Forkd</h1>
+        <p className="muted">Sign up in a few seconds, rate a few places, and get suggestions that suit you.</p>
       </div>
       <AuthForm mode={sp.mode === "signup" ? "signup" : "signin"} next={next} google={googleEnabled} />
     </main>

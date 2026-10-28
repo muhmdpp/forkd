@@ -31,7 +31,7 @@ export function AddSpotForm({ categories }: { categories: { id: string; label: s
         <input id="mustOrder" name="mustOrder" maxLength={80} className="input" placeholder="e.g. Beef fry with porotta" />
       </label>
       <fieldset className="flex flex-col gap-2">
-        <legend className="kicker mb-2">Category (up to 2)</legend>
+        <legend className="mb-2 font-semibold">Category <span className="meta font-normal">up to 2</span></legend>
         <div className="flex flex-wrap gap-2">
           {categories.map((c) => (
             <button key={c.id} type="button" className="chip" aria-pressed={cats.includes(c.id)} onClick={() => toggle(c.id)}>
@@ -41,7 +41,7 @@ export function AddSpotForm({ categories }: { categories: { id: string; label: s
         </div>
       </fieldset>
       <fieldset className="flex flex-col gap-2">
-        <legend className="kicker mb-2">Price</legend>
+        <legend className="mb-2 font-semibold">Price</legend>
         <div className="seg">
           {[1, 2, 3].map((p) => (
             <button key={p} type="button" aria-pressed={price === p} onClick={() => setPrice(p)}>
@@ -53,7 +53,7 @@ export function AddSpotForm({ categories }: { categories: { id: string; label: s
       <label className="field">
         <span>Spice level</span>
         <input id="spice" name="spice" type="range" min="0" max="1" step="0.05" defaultValue="0.5" className="accent-[var(--hot)]" />
-        <div className="meta flex justify-between"><span>Mild</span><span>Fire</span></div>
+        <div className="meta flex justify-between"><span>Mild</span><span>Very spicy</span></div>
       </label>
       {state?.error ? <p className="error" role="alert">{state.error}</p> : null}
       <button type="submit" className="btn btn-hot btn-block" disabled={pending}>

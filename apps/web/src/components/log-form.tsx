@@ -3,10 +3,10 @@ import { useActionState, useState } from "react";
 import { type FormState, logVisit } from "@/app/actions";
 
 const HYPE = [
-  { v: 1, t: "Never heard" },
+  { v: 1, t: "None" },
   { v: 2, t: "A little" },
-  { v: 3, t: "Some buzz" },
-  { v: 4, t: "Hyped" },
+  { v: 3, t: "Some" },
+  { v: 4, t: "A lot" },
   { v: 5, t: "Viral" },
 ];
 const HEARD = [
@@ -17,9 +17,9 @@ const HEARD = [
   { v: "other", t: "Other" },
 ];
 const VOTES = [
-  { v: "gem", t: "Better", s: "than hyped" },
-  { v: "ok", t: "As", s: "promised" },
-  { v: "over", t: "All", s: "hype" },
+  { v: "gem", t: "Better", s: "than expected" },
+  { v: "ok", t: "As", s: "expected" },
+  { v: "over", t: "Over", s: "hyped" },
 ];
 
 export function LogForm({ slug }: { slug: string }) {
@@ -40,9 +40,9 @@ export function LogForm({ slug }: { slug: string }) {
       <input type="hidden" name="hypeVote" value={vote ?? ""} />
 
       <fieldset className="flex flex-col gap-2">
-        <legend className="kicker mb-2">Your rating</legend>
+        <legend className="mb-2 font-semibold">Your rating</legend>
         <div className="flex items-center gap-4">
-          <div className="relative text-[44px] leading-none tracking-[4px] select-none" onMouseLeave={() => setHover(null)}>
+          <div className="relative text-[40px] leading-none tracking-[4px] select-none" onMouseLeave={() => setHover(null)}>
             <div style={{ color: "var(--line)" }} aria-hidden="true">★★★★★</div>
             <div className="absolute inset-0 overflow-hidden whitespace-nowrap stars" style={{ width: `${(shown / 5) * 100}%` }} aria-hidden="true">
               ★★★★★
@@ -66,7 +66,7 @@ export function LogForm({ slug }: { slug: string }) {
       </fieldset>
 
       <fieldset className="flex flex-col gap-2">
-        <legend className="kicker mb-2">Before you went, how hyped was it?</legend>
+        <legend className="mb-2 font-semibold">Before going, how much hype had you heard?</legend>
         <div className="grid grid-cols-5 gap-1.5">
           {HYPE.map((h) => (
             <button key={h.v} type="button" className="option !px-1 !text-[12px]" aria-pressed={expectation === h.v} onClick={() => setExpectation(expectation === h.v ? null : h.v)}>
@@ -78,7 +78,7 @@ export function LogForm({ slug }: { slug: string }) {
       </fieldset>
 
       <fieldset className="flex flex-col gap-2">
-        <legend className="kicker mb-2">Where did you hear about it?</legend>
+        <legend className="mb-2 font-semibold">Where did you hear about it?</legend>
         <div className="flex flex-wrap gap-2">
           {HEARD.map((h) => (
             <button key={h.v} type="button" className="chip" aria-pressed={heard === h.v} onClick={() => setHeard(heard === h.v ? null : h.v)}>
@@ -89,7 +89,7 @@ export function LogForm({ slug }: { slug: string }) {
       </fieldset>
 
       <fieldset className="flex flex-col gap-2">
-        <legend className="kicker mb-2">Worth the hype?</legend>
+        <legend className="mb-2 font-semibold">Was it worth the hype?</legend>
         <div className="grid grid-cols-3 gap-2">
           {VOTES.map((h) => (
             <button key={h.v} type="button" className="option" aria-pressed={vote === h.v} onClick={() => setVote(vote === h.v ? null : h.v)}>

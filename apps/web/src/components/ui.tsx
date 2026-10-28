@@ -24,18 +24,16 @@ const STICKER_CLASS: Record<HypeLabel, string> = {
   not_enough_data: "",
 };
 
-export function HypeSticker({ label, flat = false }: { label: HypeLabel; flat?: boolean }) {
-  return <span className={`sticker ${STICKER_CLASS[label]} ${flat ? "flat" : ""}`}>{HYPE_LABEL_TEXT[label]}</span>;
+export function HypeSticker({ label }: { label: HypeLabel; flat?: boolean }) {
+  return <span className={`sticker ${STICKER_CLASS[label]}`}>{HYPE_LABEL_TEXT[label]}</span>;
 }
 
 export function Ring({ match }: { match: number }) {
-  const color = match >= 70 ? "var(--gem)" : match >= 50 ? "var(--sun)" : "var(--cap)";
+  const color = match >= 70 ? "var(--gem)" : match >= 50 ? "var(--text)" : "var(--muted)";
   return (
-    <div className="ring" style={{ "--p": match, "--c": color } as CSSProperties} aria-label={`${match}% match`}>
-      <div>
-        <b>{match}%</b>
-        <small>match</small>
-      </div>
+    <div className="match" style={{ "--c": color } as CSSProperties} aria-label={`${match}% match`}>
+      <b>{match}%</b>
+      <small>match</small>
     </div>
   );
 }
@@ -83,8 +81,7 @@ export function TopBar({ children }: { children?: ReactNode }) {
 export function SampleNote() {
   return (
     <p className="sample-note">
-      <span className="sticker flat">Sample</span>
-      <span>Spots tagged sample and their reviewers are demo data to show how Forkd learns.</span>
+      <span>The spots and reviews here are sample data for the beta.</span>
     </p>
   );
 }

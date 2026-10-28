@@ -4,11 +4,11 @@ import { usePathname } from "next/navigation";
 import { Icon } from "./ui";
 
 const items = [
-  { href: "/", label: "For you", icon: Icon.home, match: (p: string) => p === "/" },
+  { href: "/", label: "Home", icon: Icon.home, match: (p: string) => p === "/" },
   { href: "/explore", label: "Explore", icon: Icon.explore, match: (p: string) => p.startsWith("/explore") },
   { href: "/log", label: "Log", icon: Icon.plus, match: () => false, log: true },
   { href: "/diary", label: "Diary", icon: Icon.diary, match: (p: string) => p.startsWith("/diary") },
-  { href: "/me", label: "Taste", icon: Icon.me, match: (p: string) => p.startsWith("/me") },
+  { href: "/me", label: "Profile", icon: Icon.me, match: (p: string) => p.startsWith("/me") },
 ];
 
 export function BottomNav() {

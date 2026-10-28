@@ -8,10 +8,10 @@ export const metadata: Metadata = { title: "Explore" };
 export const dynamic = "force-dynamic";
 
 const SORTS: { id: ExploreSort; label: string; note: string }[] = [
-  { id: "best", label: "Top rated", note: "Weighted ratings. A spot with three 5★ reviews can't jump past one with three hundred." },
+  { id: "best", label: "Top rated", note: "Spots with only a few reviews are weighted less, so rankings stay fair." },
   { id: "you", label: "For you", note: "Your predicted match, from your taste and people who rate like you." },
-  { id: "gems", label: "Slept on", note: "Biggest gap between what people expected and what they got, in the spot's favour." },
-  { id: "hyped", label: "Most hyped", note: "Highest expectations going in. Check the rating before you queue." },
+  { id: "gems", label: "Hidden gems", note: "Places people liked more than they expected to." },
+  { id: "hyped", label: "Most hyped", note: "Places people expected the most from. Compare with the rating." },
 ];
 
 export default async function Explore({ searchParams }: { searchParams: Promise<{ cat?: string; sort?: string }> }) {
@@ -30,9 +30,7 @@ export default async function Explore({ searchParams }: { searchParams: Promise<
     <>
       <TopBar />
       <div className="mt-2 flex flex-col gap-4">
-        <h1 className="display">
-          Explore <em>Kozhikode</em>
-        </h1>
+        <h1 className="display">Explore Kozhikode</h1>
         <nav className="chips" aria-label="Category">
           {[{ id: "all", label: "All" }, ...categories].map((c) => (
             <Link key={c.id} href={href({ cat: c.id })} className="chip" aria-current={cat === c.id ? "true" : undefined}>
@@ -53,23 +51,21 @@ export default async function Explore({ searchParams }: { searchParams: Promise<
           <div className="card divide overflow-hidden">
             {rows.map((r, i) => (
               <Link key={r.spot.id} href={`/spots/${r.spot.slug}`} className="row">
-                <span className={`rank ${i < 3 ? "top" : ""}`}>{i + 1}</span>
+                <span className="rank">{i + 1}</span>
                 <Plate name={r.spot.name} hue={r.hue} size="sm" />
                 <div className="grow">
                   <div className="name">{r.spot.name}</div>
-                  <div className="meta flex flex-wrap items-center gap-x-1.5">
-                    <span>{r.spot.area}</span>
-                    {r.stats.count > 0 ? (
-                      <>
-                        · <Stars value={Math.round(r.stats.avg * 2) / 2} />
-                      </>
-                    ) : null}
+                  <div className="meta truncate">
+                    {r.spot.area}
+                    {r.stats.count > 0 ? <> · <Stars value={Math.round(r.stats.avg * 2) / 2} /></> : null}
                   </div>
+                  {r.stats.hypeLabel !== "not_enough_data" ? (
+                    <div className="mt-1">
+                      <HypeSticker label={r.stats.hypeLabel} />
+                    </div>
+                  ) : null}
                 </div>
-                <div className="flex flex-col items-end gap-1">
-                  <Metric sort={sort} r={r} />
-                  <HypeSticker label={r.stats.hypeLabel} flat />
-                </div>
+                <Metric sort={sort} r={r} />
               </Link>
             ))}
           </div>

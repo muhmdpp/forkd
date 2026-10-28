@@ -15,9 +15,7 @@ export default async function QuickRate() {
     <>
       <TopBar />
       <div className="flex flex-col gap-4">
-        <h1 className="display">
-          Quick <em>rate</em>
-        </h1>
+        <h1 className="display">Quick rate</h1>
         {spots.length ? (
           <SwipeDeck spots={spots} next="/?toast=logged" minAnswers={1} doneLabel="Save" />
         ) : (

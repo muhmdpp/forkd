@@ -7,7 +7,7 @@ import { requireViewer } from "@/lib/session";
 export const metadata: Metadata = { title: "Diary" };
 export const dynamic = "force-dynamic";
 
-const VOTE = { gem: "Better than hyped", ok: "As promised", over: "All hype" } as const;
+const VOTE = { gem: "Better than expected", ok: "As expected", over: "Overhyped" } as const;
 
 export default async function Diary() {
   const viewer = await requireViewer("/diary");
@@ -17,9 +17,7 @@ export default async function Diary() {
     <>
       <TopBar />
       <div className="flex flex-col gap-5">
-        <h1 className="display">
-          Your food <em>diary</em>
-        </h1>
+        <h1 className="display">Your diary</h1>
         <div className="grid grid-cols-3 gap-2">
           <Stat n={String(stats.rated)} label="spots rated" />
           <Stat n={stats.avg ? stats.avg.toFixed(1) : "–"} label="avg rating" />
@@ -67,7 +65,7 @@ export default async function Diary() {
 function Stat({ n, label }: { n: string; label: string }) {
   return (
     <div className="card p-3">
-      <div className="num text-[24px] font-bold">{n}</div>
+      <div className="num text-[22px] font-bold">{n}</div>
       <div className="meta text-[12px]">{label}</div>
     </div>
   );

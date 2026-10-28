@@ -25,9 +25,9 @@ export function explainReason(r: Reason, l: ExplainLookup): string {
     case "TASTE_TWINS":
       return `${r.fans} people whose ratings track yours gave it 4★ or more.`;
     case "HIDDEN_GEM":
-      return `Quiet online, loved in person: rated ${one(r.avg)}★, above what people expected.`;
+      return `Rated ${one(r.avg)}★, better than people expected.`;
     case "OVERHYPED_BUT_FITS":
-      return "Most people find it overhyped, but your taste says you'll still enjoy it.";
+      return "Many find it overhyped, but it matches your taste.";
     case "SPICE_MATCH":
       return "Spice level matches the places you rate highly.";
     case "PRICE_MATCH":
@@ -40,7 +40,7 @@ export function explainReason(r: Reason, l: ExplainLookup): string {
 export function explainWarning(w: Warning, l: ExplainLookup): string {
   switch (w.code) {
     case "OVERHYPED":
-      return `People expected ${one(w.expected)}★ from the buzz. They actually rate it ${one(w.actual)}★.`;
+      return `People expected ${one(w.expected)}★ and rated it ${one(w.actual)}★.`;
     case "TWINS_DISLIKE":
       return `${w.dislikers} of ${w.raters} people with your taste rated it under 4★.`;
     case "LOW_AFFINITY":
@@ -50,17 +50,17 @@ export function explainWarning(w: Warning, l: ExplainLookup): string {
   }
 }
 
-/** Short sticker labels. Written for the app's audience; keep them short enough for a badge. */
+/** Short badge labels. */
 export const HYPE_LABEL_TEXT: Record<HypeLabel, string> = {
-  overhyped: "All hype",
-  hidden_gem: "Slept on",
-  lives_up: "Legit",
-  not_enough_data: "Too new to call",
+  overhyped: "Overhyped",
+  hidden_gem: "Hidden gem",
+  lives_up: "Lives up to it",
+  not_enough_data: "New",
 };
 
 export const HYPE_LABEL_SUMMARY: Record<HypeLabel, string> = {
-  overhyped: "The reels set the bar higher than the food clears it.",
-  hidden_gem: "Way better than people expected going in. Barely any reels about it.",
-  lives_up: "What you saw online is pretty much what you get.",
-  not_enough_data: "We need 5 visits with a hype answer before we call it.",
+  overhyped: "People expected more than they got.",
+  hidden_gem: "People liked it more than they expected to.",
+  lives_up: "It's about as good as people expected.",
+  not_enough_data: "Not enough visits yet to compare.",
 };

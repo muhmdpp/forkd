@@ -4,9 +4,9 @@ import { useEffect, useState, useTransition } from "react";
 import { hideSpot } from "@/app/actions";
 
 const REASONS = [
-  { id: "cuisine", title: "Not my kind of food", sub: "Show me less of this category" },
-  { id: "price", title: "Too pricey", sub: "Lean towards cheaper places" },
-  { id: "hype", title: "Looks like pure hype", sub: "Trust reels less when picking for me" },
+  { id: "cuisine", title: "Not my kind of food", sub: "Show me less of this type" },
+  { id: "price", title: "Too expensive", sub: "Show me cheaper places" },
+  { id: "hype", title: "Looks overhyped", sub: "Rely less on hype when picking for me" },
   { id: "other", title: "Just not now", sub: "Hide it, don't change my taste" },
 ] as const;
 
@@ -33,7 +33,7 @@ export function NotForMe({ spotId, spotName, compact = false }: { spotId: string
             <div className="grab" />
             <div>
               <h2 id="nfm-title" className="h2">
-                Not feeling it?
+                Not for you?
               </h2>
               <p className="meta mt-1">Tell us why and we'll hide {spotName} and learn from it.</p>
             </div>

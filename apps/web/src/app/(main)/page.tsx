@@ -26,20 +26,16 @@ export default async function Home() {
         </Link>
       </TopBar>
 
-      <section className="mt-2 flex flex-col gap-2">
-        <p className="kicker">Hey {first}</p>
-        <h1 className="display">
-          Eat where <em>you&rsquo;d</em> love it.
-        </h1>
+      <section className="mt-1 flex flex-col gap-1">
+        <h1 className="display">Hi {first}</h1>
         <p className="muted">
-          Ranked for your taste from {ratedCount} spot{ratedCount === 1 ? "" : "s"} you&rsquo;ve rated, plus people who
-          rate like you.
+          Picks based on the {ratedCount} spot{ratedCount === 1 ? "" : "s"} you&rsquo;ve rated.
         </p>
       </section>
 
       {hero ? (
         <section className="mt-6 flex flex-col gap-3">
-          <SectionHead title="Tonight's pick" />
+          <SectionHead title="Top pick for you" />
           <RecCard c={hero} hero />
         </section>
       ) : (
@@ -51,8 +47,8 @@ export default async function Home() {
 
       {rest.length ? (
         <section className="mt-8 flex flex-col gap-3">
-          <SectionHead title="Also your vibe" note="Swipe for more" />
-          <div className="rail">
+          <SectionHead title="More for you" />
+          <div className="flex flex-col gap-3">
             {rest.map((c) => (
               <RecCard key={c.spot.id} c={c} />
             ))}
@@ -62,7 +58,7 @@ export default async function Home() {
 
       {hypeWarnings.length ? (
         <section className="mt-8 flex flex-col gap-3">
-          <SectionHead title="Skip the reel" note="Big on Instagram, weak match for you" />
+          <SectionHead title="Popular, but maybe not for you" />
           <div className="card divide overflow-hidden">
             {hypeWarnings.map((c) => (
               <Link key={c.spot.id} href={`/spots/${c.spot.slug}`} className="row">
@@ -95,17 +91,17 @@ async function Landing() {
         </Link>
       </TopBar>
       <section className="mt-6 flex flex-col gap-4">
-        <span className="sticker sticker-hot self-start">Kozhikode beta</span>
-        <h1 className="display" style={{ fontSize: "clamp(36px, 11vw, 52px)" }}>
-          Reels lie. <em>Your taste</em> doesn&rsquo;t.
+        <p className="kicker">Now in Kozhikode</p>
+        <h1 className="display" style={{ fontSize: "30px" }}>
+          Find food spots you&rsquo;ll actually like.
         </h1>
-        <p className="muted text-[16px]">
-          Rate the places you&rsquo;ve been. Forkd finds people who eat like you, picks spots you&rsquo;ll actually love,
-          and calls out the ones that are all hype.
+        <p className="muted">
+          Rate places you&rsquo;ve been. Forkd learns your taste, suggests spots that suit you, and shows when a place
+          is more hype than food.
         </p>
         <div className="flex flex-col gap-2">
           <Link href="/signin?mode=signup" className="btn btn-hot btn-block">
-            Find my spots
+            Get started
           </Link>
           <Link href="/explore" className="btn btn-ghost btn-block">
             Just browse
@@ -114,19 +110,19 @@ async function Landing() {
       </section>
 
       <section className="mt-10 flex flex-col gap-3">
-        <SectionHead title="Kozhikode's actual best" note="Weighted ratings, not follower counts" />
+        <SectionHead title="Top rated in Kozhikode" />
         <div className="card divide overflow-hidden">
           {top.map((t, i) => (
             <Link key={t.spot.id} href={`/spots/${t.spot.slug}`} className="row">
-              <span className={`rank ${i < 3 ? "top" : ""}`}>{i + 1}</span>
+              <span className="rank">{i + 1}</span>
               <Plate name={t.spot.name} hue={t.hue} size="sm" />
               <div className="grow">
                 <div className="name">{t.spot.name}</div>
-                <div className="meta flex items-center gap-1.5">
-                  <Stars value={Math.round(t.stats.avg * 2) / 2} /> {t.spot.area}
+                <div className="meta truncate">
+                  <Stars value={Math.round(t.stats.avg * 2) / 2} /> · {t.spot.area}
                 </div>
               </div>
-              <HypeSticker label={t.stats.hypeLabel} />
+              <span className="num font-semibold">{t.stats.avg.toFixed(1)}</span>
             </Link>
           ))}
         </div>

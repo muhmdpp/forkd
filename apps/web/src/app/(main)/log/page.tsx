@@ -15,19 +15,17 @@ export default async function LogSearch({ searchParams }: { searchParams: Promis
     <>
       <TopBar />
       <div className="flex flex-col gap-4">
-        <h1 className="display">
-          Where&rsquo;d you <em>eat</em>?
-        </h1>
+        <h1 className="display">Log a visit</h1>
         <form action="/log" className="flex gap-2">
           <input id="q" name="q" type="search" defaultValue={q} placeholder="Search spots or areas" className="input" autoComplete="off" />
-          <button type="submit" className="btn btn-hot">Go</button>
+          <button type="submit" className="btn">Search</button>
         </form>
         <Link href="/rate" className="card flex items-center justify-between gap-3 p-4">
           <div>
-            <div className="h3">Quick rate</div>
+            <div className="h3">Rate several at once</div>
             <div className="meta">Swipe through spots you&rsquo;ve been to</div>
           </div>
-          <span className="sticker sticker-hot">Swipe</span>
+          <span className="muted" aria-hidden="true">›</span>
         </Link>
         {results.length ? (
           <div className="card divide overflow-hidden">

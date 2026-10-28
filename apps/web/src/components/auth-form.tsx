@@ -33,10 +33,10 @@ export function AuthForm({ mode: initial, next, google }: { mode: "signin" | "si
     <div className="flex flex-col gap-4">
       <div className="seg" role="group" aria-label="Sign in or sign up">
         <button type="button" aria-pressed={mode === "signup"} onClick={() => setMode("signup")}>
-          New here
+          Sign up
         </button>
         <button type="button" aria-pressed={mode === "signin"} onClick={() => setMode("signin")}>
-          I have an account
+          Sign in
         </button>
       </div>
       {google ? (

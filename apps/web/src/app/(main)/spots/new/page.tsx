@@ -15,10 +15,8 @@ export default async function NewSpot() {
       <TopBar />
       <div className="flex flex-col gap-5">
         <div>
-          <h1 className="display">
-            Put it <em>on the map</em>
-          </h1>
-          <p className="muted mt-2">Know a spot nobody&rsquo;s talking about? Add it and be the first to rate it.</p>
+          <h1 className="display">Add a spot</h1>
+          <p className="muted mt-1">Can&rsquo;t find a place? Add it and be the first to rate it.</p>
         </div>
         <AddSpotForm categories={categories.map((c) => ({ id: c.id, label: c.label }))} />
       </div>
