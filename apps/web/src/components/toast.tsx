@@ -3,10 +3,14 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const MESSAGES: Record<string, string> = {
-  logged: "Saved. Your picks have been updated.",
-  added: "Spot added. Thanks!",
+  logged: "Posted. Your picks just got smarter.",
+  rated: "Saved. Your picks have been updated.",
+  added: "Spot added. Now log your experience.",
   hidden: "Got it. We'll show less like that.",
-  welcome: "All set. Here are your picks.",
+  welcome: "You're in. Here's what we picked for you.",
+  saved: "Profile saved.",
+  deleted: "Experience deleted.",
+  created: "Collection created.",
 };
 
 /** Shows a one-off message passed as ?toast=key, then cleans the URL. */
@@ -23,7 +27,7 @@ export function Toast() {
     const next = new URLSearchParams(params);
     next.delete("toast");
     router.replace(next.size ? `${path}?${next}` : path, { scroll: false });
-    const t = setTimeout(() => setMsg(null), 3200);
+    const t = setTimeout(() => setMsg(null), 3000);
     return () => clearTimeout(t);
   }, [key, params, path, router]);
 

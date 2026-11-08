@@ -10,7 +10,7 @@ const REASONS = [
   { id: "other", title: "Just not now", sub: "Hide it, don't change my taste" },
 ] as const;
 
-export function NotForMe({ spotId, spotName, compact = false }: { spotId: string; spotName: string; compact?: boolean }) {
+export function NotForMe({ spotId, spotName }: { spotId: string; spotName: string }) {
   const [open, setOpen] = useState(false);
   const [pending, start] = useTransition();
   const path = usePathname();
@@ -24,7 +24,7 @@ export function NotForMe({ spotId, spotName, compact = false }: { spotId: string
 
   return (
     <>
-      <button type="button" className={`btn btn-ghost ${compact ? "" : ""}`} onClick={() => setOpen(true)}>
+      <button type="button" className="btn ghost sm" onClick={() => setOpen(true)}>
         Not for me
       </button>
       {open ? (
@@ -32,10 +32,10 @@ export function NotForMe({ spotId, spotName, compact = false }: { spotId: string
           <div className="sheet" role="dialog" aria-modal="true" aria-labelledby="nfm-title">
             <div className="grab" />
             <div>
-              <h2 id="nfm-title" className="h2">
+              <h2 id="nfm-title" className="h1">
                 Not for you?
               </h2>
-              <p className="meta mt-1">Tell us why and we'll hide {spotName} and learn from it.</p>
+              <p className="muted mt-1 small">Tell us why. We&rsquo;ll hide {spotName} and learn from it.</p>
             </div>
             <div className="flex flex-col gap-2">
               {REASONS.map((r) => (
@@ -43,15 +43,15 @@ export function NotForMe({ spotId, spotName, compact = false }: { spotId: string
                   key={r.id}
                   type="button"
                   disabled={pending}
-                  className="card text-left px-4 py-3 disabled:opacity-50"
+                  className="card line px-4 py-3 text-left disabled:opacity-50"
                   onClick={() => start(() => hideSpot(spotId, r.id, path))}
                 >
-                  <div className="font-semibold">{r.title}</div>
-                  <div className="meta">{r.sub}</div>
+                  <div className="font-bold">{r.title}</div>
+                  <div className="small muted">{r.sub}</div>
                 </button>
               ))}
             </div>
-            <button type="button" className="btn btn-ghost btn-block" onClick={() => setOpen(false)}>
+            <button type="button" className="btn ghost wide" onClick={() => setOpen(false)}>
               Cancel
             </button>
           </div>

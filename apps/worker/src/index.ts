@@ -1,18 +1,18 @@
 /**
- * Background jobs. v0.1 has one: a full rebuild of spot stats and hype scores for every city.
- * Run it on a schedule (cron, Railway, GitHub Actions) with:  pnpm worker
+ * Background jobs. v0.2 has one: recompute stats, hype labels, dishes and trending counts
+ * for every spot. Safe to run any time. Run on a schedule with:  pnpm worker
  *
- * Planned (see docs): trust score recalculation, precomputed recommendations, receipt checks,
- * image processing. These move to a BullMQ queue on Redis when traffic needs it.
+ * Planned (see docs): trust score recalculation, precomputed recommendations, receipt checks.
  */
-import { createDb, rebuildCityStats, schema } from "@forkd/db";
+import { getStore, recomputeSpot } from "@forkd/db";
 
-const db = createDb();
 const started = Date.now();
-const cities = await db.select({ id: schema.cities.id }).from(schema.cities);
-for (const c of cities) {
-  const n = await rebuildCityStats(db, c.id);
-  console.log(`[worker] ${c.id}: rebuilt stats for ${n} spots`);
+const store = await getStore();
+const cities = ["kozhikode"];
+for (const city of cities) {
+  const spots = await store.listCitySpots(city);
+  for (const s of spots) await recomputeSpot(store, s.id);
+  console.log(`[worker] ${city}: recomputed ${spots.length} spots`);
 }
 console.log(`[worker] done in ${Date.now() - started} ms`);
-await db.$client.end();
+process.exit(0);

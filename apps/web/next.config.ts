@@ -3,8 +3,12 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Workspace packages ship TypeScript source.
   transpilePackages: ["@forkd/core", "@forkd/db"],
-  serverExternalPackages: ["postgres", "@electric-sql/pglite"],
+  serverExternalPackages: ["firebase-admin"],
   poweredByHeader: false,
+  experimental: {
+    // Photos are resized in the browser to well under this before upload.
+    serverActions: { bodySizeLimit: "2mb" },
+  },
   async headers() {
     return [
       {
@@ -13,7 +17,7 @@ const nextConfig: NextConfig = {
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "X-Frame-Options", value: "DENY" },
-          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(self)" },
+          { key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=(self)" },
         ],
       },
     ];

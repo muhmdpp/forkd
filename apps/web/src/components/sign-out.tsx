@@ -1,20 +1,26 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { authClient } from "@/lib/auth-client";
+import { useState } from "react";
+import { signOutEverywhere } from "@/lib/firebase-client";
+import { I } from "./icons";
 
-export function SignOut() {
+export function SignOutButton() {
   const router = useRouter();
+  const [busy, setBusy] = useState(false);
   return (
     <button
       type="button"
-      className="btn btn-block"
+      className="btn wide"
+      disabled={busy}
       onClick={async () => {
-        await authClient.signOut();
+        setBusy(true);
+        await signOutEverywhere();
         router.replace("/");
         router.refresh();
       }}
     >
-      Sign out
+      {I.logout({ width: 18, height: 18 })}
+      {busy ? "Signing out…" : "Sign out"}
     </button>
   );
 }

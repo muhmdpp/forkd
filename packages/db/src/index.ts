@@ -1,4 +1,4 @@
-export * from "./client";
-export * as schema from "./schema";
+export * from "./types";
 export * from "./services";
-export { uuidv7 } from "./uuid";
+export { getAdminApp, getFirebaseWebConfig, isDemoMode, parseLooseObject, type FirebaseWebConfig } from "./firebase";
+export { buildSampleData } from "./sample-data";

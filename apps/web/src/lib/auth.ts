@@ -1,73 +1,109 @@
 import "server-only";
-import { getDb, isDemoMode, schema } from "@forkd/db";
-import { betterAuth } from "better-auth";
-import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { nextCookies } from "better-auth/next-js";
-import { eq } from "drizzle-orm";
+import { type Profile, ensureProfile, getAdminApp, getStore, isDemoMode } from "@forkd/db";
+import { getAuth } from "firebase-admin/auth";
+import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
+import { cookies } from "next/headers";
+import { cache } from "react";
 
-const DEFAULT_CITY = "kozhikode";
+/**
+ * Sessions are an httpOnly cookie.
+ * - Firebase mode: a Firebase session cookie, minted from the ID token after the browser signs in.
+ * - Demo mode: a signed guest token (the demo data lives in server memory anyway).
+ */
+export const SESSION_COOKIE = "__session";
+const SESSION_DAYS = 14;
 
-function handleFrom(name: string, email: string) {
-  const base = (name || email.split("@")[0] || "foodie")
-    .toLowerCase()
-    .normalize("NFKD")
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "")
-    .slice(0, 20);
-  return `${base || "foodie"}_${Math.random().toString(36).slice(2, 6)}`;
+// Demo sessions only. A fixed fallback keeps guest cookies valid across server instances;
+// demo data is public sample data, so there is nothing secret behind it.
+const demoSecret = process.env.SESSION_SECRET ?? "forkd-demo-mode-guest-sessions";
+const sign = (v: string) => createHmac("sha256", demoSecret).update(v).digest("base64url");
+
+/** Guest identity lives in the cookie, so any server instance can rebuild the profile. */
+interface GuestToken {
+  uid: string;
+  name: string;
+  onb: boolean;
+}
+const encodeGuest = (t: GuestToken) => {
+  const body = Buffer.from(JSON.stringify(t)).toString("base64url");
+  return `demo.${body}.${sign(body)}`;
+};
+function decodeGuest(value: string): GuestToken | null {
+  const [, body, sig] = value.split(".");
+  if (!body || !sig) return null;
+  const a = Buffer.from(sig);
+  const b = Buffer.from(sign(body));
+  if (a.length !== b.length || !timingSafeEqual(a, b)) return null;
+  try {
+    const t = JSON.parse(Buffer.from(body, "base64url").toString()) as GuestToken;
+    return typeof t.uid === "string" && t.uid.startsWith("guest_") ? t : null;
+  } catch {
+    return null;
+  }
 }
 
-/** Every user gets a profile row the moment their account exists. */
-export async function ensureProfile(userId: string, name: string, email: string) {
-  const db = getDb();
-  const [existing] = await db.select().from(schema.profiles).where(eq(schema.profiles.userId, userId));
-  if (existing) return existing;
-  const [created] = await db
-    .insert(schema.profiles)
-    .values({ userId, handle: handleFrom(name, email), homeCityId: DEFAULT_CITY, trustScore: 0.4 })
-    .onConflictDoNothing()
-    .returning();
-  return created ?? (await db.select().from(schema.profiles).where(eq(schema.profiles.userId, userId)))[0]!;
+async function setCookie(value: string) {
+  (await cookies()).set(SESSION_COOKIE, value, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: SESSION_DAYS * 86_400,
+  });
 }
 
-const google =
-  process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
-    ? { google: { clientId: process.env.GOOGLE_CLIENT_ID, clientSecret: process.env.GOOGLE_CLIENT_SECRET } }
-    : undefined;
+export async function clearSession() {
+  (await cookies()).delete(SESSION_COOKIE);
+}
 
-export const googleEnabled = Boolean(google);
+/** Firebase mode: exchange a fresh ID token for a session cookie and make sure a profile exists. */
+export async function startFirebaseSession(idToken: string, name?: string) {
+  const auth = getAuth(getAdminApp());
+  const decoded = await auth.verifyIdToken(idToken);
+  // Session cookies may only be minted from a recent sign-in.
+  if (Date.now() / 1000 - decoded.auth_time > 5 * 60) throw new Error("Please sign in again.");
+  const cookie = await auth.createSessionCookie(idToken, { expiresIn: SESSION_DAYS * 86_400_000 });
+  await ensureProfile(decoded.uid, name || decoded.name || "", decoded.email ?? null);
+  await setCookie(cookie);
+}
 
-const vercelUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL ?? process.env.VERCEL_URL;
-const baseURL = process.env.BETTER_AUTH_URL ?? (vercelUrl ? `https://${vercelUrl}` : undefined);
+/** Demo mode: a guest account that lives as long as the server process. */
+export async function startGuestSession(name: string) {
+  if (!isDemoMode) throw new Error("Guest sign-in is only available in demo mode.");
+  const uid = `guest_${randomUUID().slice(0, 8)}`;
+  const token = { uid, name: (name || "Guest").slice(0, 40), onb: false };
+  await ensureProfile(uid, token.name, null);
+  await setCookie(encodeGuest(token));
+}
 
-// Demo mode (no DATABASE_URL) may also run without a secret so a first deploy works out of the box.
-// Any real deployment must set BETTER_AUTH_SECRET.
-const secret =
-  process.env.BETTER_AUTH_SECRET ?? (isDemoMode ? "forkd-demo-mode-only-secret-set-BETTER_AUTH_SECRET" : undefined);
+/** Demo mode: remember onboarding in the cookie too, since server memory may not persist. */
+export async function markGuestOnboarded() {
+  const value = (await cookies()).get(SESSION_COOKIE)?.value;
+  const t = value?.startsWith("demo.") ? decodeGuest(value) : null;
+  if (t && !t.onb) await setCookie(encodeGuest({ ...t, onb: true }));
+}
 
-export const auth = betterAuth({
-  appName: "Forkd",
-  baseURL,
-  secret,
-  trustedOrigins: [process.env.VERCEL_URL, process.env.VERCEL_BRANCH_URL, process.env.VERCEL_PROJECT_PRODUCTION_URL]
-    .filter((u): u is string => Boolean(u))
-    .map((u) => `https://${u}`),
-  database: drizzleAdapter(getDb(), {
-    provider: "pg",
-    schema: { user: schema.user, session: schema.session, account: schema.account, verification: schema.verification },
-  }),
-  emailAndPassword: { enabled: true, minPasswordLength: 8 },
-  socialProviders: google,
-  session: { expiresIn: 60 * 60 * 24 * 30, updateAge: 60 * 60 * 24 },
-  rateLimit: { enabled: true, window: 60, max: 30 },
-  databaseHooks: {
-    user: {
-      create: {
-        after: async (u) => {
-          await ensureProfile(u.id, u.name, u.email);
-        },
-      },
-    },
-  },
-  plugins: [nextCookies()],
+/** The signed-in person's profile, or null. Cached per request. */
+export const getViewer = cache(async (): Promise<Profile | null> => {
+  const value = (await cookies()).get(SESSION_COOKIE)?.value;
+  if (!value) return null;
+  const store = await getStore();
+  if (value.startsWith("demo.")) {
+    if (!isDemoMode) return null;
+    const t = decodeGuest(value);
+    if (!t) return null;
+    const profile = (await store.getProfile(t.uid)) ?? (await ensureProfile(t.uid, t.name, null));
+    if (t.onb && !profile.onboardedAt) {
+      await store.updateProfile(t.uid, { onboardedAt: new Date() });
+      profile.onboardedAt = new Date();
+    }
+    return profile;
+  }
+  if (isDemoMode) return null;
+  try {
+    const decoded = await getAuth(getAdminApp()).verifySessionCookie(value);
+    return await store.getProfile(decoded.uid);
+  } catch {
+    return null;
+  }
 });
