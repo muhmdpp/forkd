@@ -1,27 +1,23 @@
 /**
- * Seeds Kozhikode with SAMPLE spots and simulated reviewers so the recommender has data to learn from.
- * Everything inserted here is flagged is_sample = true. Re-running replaces the sample data and
- * never touches real users or real spots.
- *
- *   pnpm db:seed
+ * Deterministic SAMPLE data for Kozhikode: spots, simulated reviewers and their visits.
+ * Used to seed Firestore on first launch and to fill the in-memory demo store.
+ * Everything here is flagged isSample, and ids are stable so re-seeding is idempotent.
  */
-import { eq, inArray, sql } from "drizzle-orm";
-import { createDb, rowsOf } from "./client";
-import { rebuildCityStats } from "./services";
-import { categories, cities, profiles, spotCategories, spots, user, visits } from "./schema";
+import { computeAllSpotStats } from "@forkd/core";
+import type { Category, City, Profile, SpotRow, VisitRecord } from "./types";
 
-const CITY = { id: "kozhikode", name: "Kozhikode", lat: 11.2588, lng: 75.7804 };
+export const SAMPLE_CITY: City = { id: "kozhikode", name: "Kozhikode" };
 
-const CATEGORIES = [
-  { id: "biryani", label: "Biryani", hue: 28 },
-  { id: "arabic", label: "Mandi & Arabic", hue: 40 },
-  { id: "seafood", label: "Seafood", hue: 196 },
-  { id: "meals", label: "Kerala meals", hue: 132 },
-  { id: "snacks", label: "Tea & snacks", hue: 88 },
-  { id: "cafe", label: "Cafés", hue: 266 },
-  { id: "dessert", label: "Desserts", hue: 334 },
-  { id: "chinese", label: "Indo-Chinese", hue: 6 },
-  { id: "bakery", label: "Bakery", hue: 50 },
+export const SAMPLE_CATEGORIES: Category[] = [
+  { id: "biryani", label: "Biryani", hue: 28, sortOrder: 0 },
+  { id: "arabic", label: "Mandi & Arabic", hue: 40, sortOrder: 1 },
+  { id: "seafood", label: "Seafood", hue: 196, sortOrder: 2 },
+  { id: "meals", label: "Kerala meals", hue: 132, sortOrder: 3 },
+  { id: "snacks", label: "Tea & snacks", hue: 88, sortOrder: 4 },
+  { id: "cafe", label: "Cafés", hue: 266, sortOrder: 5 },
+  { id: "dessert", label: "Desserts", hue: 334, sortOrder: 6 },
+  { id: "chinese", label: "Indo-Chinese", hue: 6, sortOrder: 7 },
+  { id: "bakery", label: "Bakery", hue: 50, sortOrder: 8 },
 ];
 
 // buzz = how loud the place is on social media (0-1); q = hidden "true" quality. Both only drive the simulation.
@@ -73,74 +69,69 @@ function mulberry32(seed: number) {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
-const rand = mulberry32(20261028);
-const gauss = () => {
-  let u = 0;
-  let v = 0;
-  while (!u) u = rand();
-  while (!v) v = rand();
-  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
-};
-const clamp = (x: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, x));
-const halfStar = (x: number) => clamp(Math.round(x * 2) / 2, 0.5, 5);
-const pick = <T,>(arr: readonly T[]) => arr[Math.floor(rand() * arr.length)]!;
+export interface SampleData {
+  city: City;
+  categories: Category[];
+  spots: SpotRow[];
+  profiles: Profile[];
+  visits: VisitRecord[];
+}
 
-async function main() {
-  const db = createDb();
+/** Builds the full sample dataset. Same output on every call. */
+export function buildSampleData(now = Date.UTC(2026, 9, 28)): SampleData {
+  const rand = mulberry32(20261028);
+  const gauss = () => {
+    let u = 0;
+    let v = 0;
+    while (!u) u = rand();
+    while (!v) v = rand();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+  };
+  const clamp = (x: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, x));
+  const halfStar = (x: number) => clamp(Math.round(x * 2) / 2, 0.5, 5);
+  const pick = <T,>(arr: readonly T[]) => arr[Math.floor(rand() * arr.length)]!;
+  const created = new Date(now - 200 * 86_400_000);
 
-  await db.insert(cities).values(CITY).onConflictDoNothing();
-  for (const [i, c] of CATEGORIES.entries()) {
-    await db
-      .insert(categories)
-      .values({ ...c, sortOrder: i })
-      .onConflictDoUpdate({ target: categories.id, set: { label: c.label, hue: c.hue, sortOrder: i } });
-  }
+  const spots: SpotRow[] = SPOTS.map((s) => ({
+    id: `sample-${s.slug}`,
+    slug: s.slug,
+    name: s.name,
+    cityId: SAMPLE_CITY.id,
+    area: s.area,
+    priceBand: s.price as 1 | 2 | 3,
+    spice: s.spice,
+    mustOrder: s.dish,
+    categories: [...s.cats],
+    status: "live",
+    isSample: true,
+    createdBy: null,
+    createdAt: created,
+    stats: null,
+    ratings: {},
+  }));
 
-  // Replace previous sample data only.
-  await db.delete(spots).where(eq(spots.isSample, true));
-  const sampleUsers = await db.select({ id: profiles.userId }).from(profiles).where(eq(profiles.isSample, true));
-  if (sampleUsers.length) await db.delete(user).where(inArray(user.id, sampleUsers.map((u) => u.id)));
-
-  const spotIds = new Map<string, string>();
-  for (const s of SPOTS) {
-    const [row] = await db
-      .insert(spots)
-      .values({
-        slug: s.slug,
-        name: s.name,
-        cityId: CITY.id,
-        area: s.area,
-        priceBand: s.price,
-        spice: s.spice,
-        mustOrder: s.dish,
-        status: "live",
-        isSample: true,
-      })
-      .returning({ id: spots.id });
-    spotIds.set(s.slug, row!.id);
-    await db.insert(spotCategories).values(s.cats.map((categoryId) => ({ spotId: row!.id, categoryId })));
-  }
-
-  const now = Date.now();
-  const visitRows: (typeof visits.$inferInsert)[] = [];
+  const profiles: Profile[] = [];
+  const visits: VisitRecord[] = [];
   for (const [i, handle] of HANDLES.entries()) {
-    const id = `sample_${handle.replace(/[^a-z0-9]/g, "_")}`;
-    await db.insert(user).values({ id, name: handle, email: `${id}@sample.forkd.invalid`, emailVerified: true });
-    await db.insert(profiles).values({
-      userId: id,
+    const uid = `sample_${handle.replace(/[^a-z0-9]/g, "_")}`;
+    const trust = Number((0.55 + rand() * 0.4).toFixed(2));
+    profiles.push({
+      uid,
+      name: handle,
       handle,
-      homeCityId: CITY.id,
-      trustScore: Number((0.55 + rand() * 0.4).toFixed(2)),
-      onboardedAt: new Date(),
+      homeCityId: SAMPLE_CITY.id,
+      trustScore: trust,
+      onboardedAt: created,
       isSample: true,
+      createdAt: created,
     });
 
     const a = ARCHETYPES[i % ARCHETYPES.length]!;
     const tags: Record<string, number> = {};
-    for (const c of CATEGORIES) tags[c.id] = ((a.tags as Record<string, number>)[c.id] ?? 0) + gauss() * 0.15;
+    for (const c of SAMPLE_CATEGORIES) tags[c.id] = ((a.tags as Record<string, number>)[c.id] ?? 0) + gauss() * 0.15;
     const spiceLike = clamp(a.spice + gauss() * 0.1, 0, 1);
 
-    for (const s of SPOTS) {
+    for (const [j, s] of SPOTS.entries()) {
       if (rand() > 0.32 + 0.4 * s.buzz) continue;
       const aff = s.cats.reduce((t, c) => t + (tags[c] ?? 0), 0) / s.cats.length;
       const rating = halfStar(s.q + 0.9 * aff - 0.9 * Math.abs(s.spice - spiceLike) - (s.price - 1) * a.ps * 0.35 + gauss() * 0.4);
@@ -149,29 +140,32 @@ async function main() {
       const hypeVote = rating <= expectation - 0.7 ? "over" : rating >= expectation + 0.2 ? "gem" : "ok";
       const tone = rating >= 4 ? REVIEWS.hi : rating <= 2.5 ? REVIEWS.lo : REVIEWS.mid;
       const createdAt = new Date(now - Math.floor(rand() * 120) * 86_400_000 - Math.floor(rand() * 86_400_000));
-      visitRows.push({
-        userId: id,
-        spotId: spotIds.get(s.slug)!,
+      const review = rand() < 0.55 ? pick(tone).replace("{d}", s.dish.toLowerCase()) : null;
+      const spot = spots[j]!;
+      visits.push({
+        id: `sample-v${String(visits.length).padStart(4, "0")}`,
+        userId: uid,
+        handle,
+        spotId: spot.id,
+        cityId: SAMPLE_CITY.id,
         rating,
         expectation,
         heardFrom,
         hypeVote,
-        review: rand() < 0.55 ? pick(tone).replace("{d}", s.dish.toLowerCase()) : null,
+        review,
         source: "log",
-        visitedOn: createdAt.toISOString().slice(0, 10),
+        weight: trust,
         createdAt,
       });
+      spot.ratings[uid] = rating;
     }
   }
-  for (let i = 0; i < visitRows.length; i += 200) await db.insert(visits).values(visitRows.slice(i, i + 200));
 
-  const n = await rebuildCityStats(db, CITY.id);
-  const [{ count } = { count: 0 }] = rowsOf<{ count: number }>(await db.execute(sql`select count(*)::int as count from visits`));
-  console.log(`Seeded ${SPOTS.length} sample spots, ${HANDLES.length} sample reviewers, ${count} visits. Stats rebuilt for ${n} spots.`);
-  await db.$client.end();
+  const { stats } = computeAllSpotStats(
+    spots.map((s) => s.id),
+    visits.map((v) => ({ ...v })),
+  );
+  for (const s of spots) s.stats = stats.get(s.id) ?? null;
+
+  return { city: SAMPLE_CITY, categories: SAMPLE_CATEGORIES, spots, profiles, visits };
 }
-
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
